@@ -1,5 +1,21 @@
 # Similar Products — Backend
 
-Base de la prueba técnica: mocks, k6, Grafana y contratos OpenAPI.
+API REST de productos similares (prueba técnica).
 
-Todavía no está la aplicación; solo la infra del enunciado.
+## Carpetas
+
+| Ruta | Qué es |
+|------|--------|
+| `shared/` | Mocks, k6 y Grafana |
+| `similarProducts.yaml` | Contrato a cumplir |
+| `existingApis.yaml` | APIs upstream |
+| `docker-compose.yaml` | Infra de prueba |
+
+## Cómo levantar los mocks
+
+```bash
+docker compose up -d simulado influxdb grafana
+curl http://localhost:3001/product/1/similarids
+```
+
+Siguiente paso: la app Spring Boot en el puerto 5000.
