@@ -1,21 +1,13 @@
 # Similar Products — Backend
 
-API REST de productos similares (prueba técnica).
+API REST de productos similares en el puerto **5000**.
 
-## Carpetas
-
-| Ruta | Qué es |
-|------|--------|
-| `shared/` | Mocks, k6 y Grafana |
-| `similarProducts.yaml` | Contrato a cumplir |
-| `existingApis.yaml` | APIs upstream |
-| `docker-compose.yaml` | Infra de prueba |
-
-## Cómo levantar los mocks
+## Arranque
 
 ```bash
 docker compose up -d simulado influxdb grafana
-curl http://localhost:3001/product/1/similarids
+cd similar-products
+mvn spring-boot:run
 ```
 
-Siguiente paso: la app Spring Boot en el puerto 5000.
+La app ya arranca; falta el dominio y el endpoint.
