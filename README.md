@@ -11,5 +11,5 @@ cd similar-products && mvn spring-boot:run
 
 ## Diseño (en progreso)
 
-Arquitectura hexagonal: modelo `Product`, excepción de no encontrado y puertos
-de entrada/salida. Siguiente: caso de uso e infraestructura.
+- Dominio + puertos hexagonales.
+- Caso de uso: pide ids similares, luego fichas en paralelo; si una falla, la omite.
