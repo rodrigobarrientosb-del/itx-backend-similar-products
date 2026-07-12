@@ -9,7 +9,7 @@ docker compose up -d simulado influxdb grafana
 cd similar-products && mvn spring-boot:run
 ```
 
-## Diseño (en progreso)
+## Decisiones hasta ahora
 
-- Dominio + puertos hexagonales.
-- Caso de uso: pide ids similares, luego fichas en paralelo; si una falla, la omite.
+- WebFlux para aguantar la carga del k6.
+- Timeout 2s y circuit breaker frente a un upstream lento o inestable.
