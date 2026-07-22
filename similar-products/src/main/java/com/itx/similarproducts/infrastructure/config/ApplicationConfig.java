@@ -7,7 +7,6 @@ import com.itx.similarproducts.infrastructure.adapter.out.cache.CachingProductDe
 import com.itx.similarproducts.infrastructure.adapter.out.cache.CachingSimilarIdsAdapter;
 import com.itx.similarproducts.infrastructure.adapter.out.http.WebClientProductDetailAdapter;
 import com.itx.similarproducts.infrastructure.adapter.out.http.WebClientSimilarIdsAdapter;
-import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -40,6 +39,10 @@ public class ApplicationConfig {
                 .clientConnector(new ReactorClientHttpConnector(httpClient));
     }
 
+    /**
+     * Registry compartido: cada productId obtiene su propio circuit breaker
+     * ({@code productApi-&lt;id&gt;}) con esta misma configuración.
+     */
     @Bean
     CircuitBreakerRegistry circuitBreakerRegistry() {
         CircuitBreakerConfig config = CircuitBreakerConfig.custom()
@@ -56,19 +59,14 @@ public class ApplicationConfig {
     }
 
     @Bean
-    CircuitBreaker productApiCircuitBreaker(CircuitBreakerRegistry registry) {
-        return registry.circuitBreaker("productApi");
-    }
-
-    @Bean
     SimilarIdsPort similarIdsPort(
             WebClient.Builder webClientBuilder,
             UpstreamProperties upstreamProperties,
-            CircuitBreaker productApiCircuitBreaker,
+            CircuitBreakerRegistry circuitBreakerRegistry,
             CacheProperties cacheProperties
     ) {
         SimilarIdsPort http = new WebClientSimilarIdsAdapter(
-                webClientBuilder, upstreamProperties, productApiCircuitBreaker);
+                webClientBuilder, upstreamProperties, circuitBreakerRegistry);
         return new CachingSimilarIdsAdapter(http, cacheProperties);
     }
 
@@ -76,11 +74,11 @@ public class ApplicationConfig {
     ProductDetailPort productDetailPort(
             WebClient.Builder webClientBuilder,
             UpstreamProperties upstreamProperties,
-            CircuitBreaker productApiCircuitBreaker,
+            CircuitBreakerRegistry circuitBreakerRegistry,
             CacheProperties cacheProperties
     ) {
         ProductDetailPort http = new WebClientProductDetailAdapter(
-                webClientBuilder, upstreamProperties, productApiCircuitBreaker);
+                webClientBuilder, upstreamProperties, circuitBreakerRegistry);
         return new CachingProductDetailAdapter(http, cacheProperties);
     }
 }

@@ -27,7 +27,7 @@ Controller → GetSimilarProductsUseCase
                 ↓
          SimilarIdsPort / ProductDetailPort
                 ↓
-     WebClient (+ timeout, circuit breaker)
+     WebClient (+ timeout, circuit breaker por productId)
                 ↓
            Caché Caffeine
 ```
@@ -74,7 +74,7 @@ Lo escribí pensando en lo que pide la prueba: resiliencia y rendimiento bajo ca
 
 - **WebFlux**: el test de k6 mete 200 VUs; I/O no bloqueante ayuda.
 - **Timeout de 2 s**: el mock tiene productos con delay de hasta 50 s. No tiene sentido esperarlos.
-- **Circuit breaker**: si el upstream empieza a devolver 500, dejamos de martillarlo un rato.
+- **Circuit breaker por productId**: si solo peta el producto 5, ese id se aísla; el resto sigue llamando al upstream.
 - **Caché ~2 min**: en el load test se piden una y otra vez los mismos ids; los datos no cambian.
 - **Si un similar falla, lo omito**: mejor devolver lo que sí salió que tumbar toda la respuesta.
 - **404 solo si fallan los similar-ids**: encaja con el “Product Not found” del OpenAPI para el producto pedido.

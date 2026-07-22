@@ -5,6 +5,7 @@ import com.itx.similarproducts.domain.model.Product;
 import com.itx.similarproducts.domain.port.out.ProductDetailPort;
 import com.itx.similarproducts.infrastructure.config.UpstreamProperties;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.github.resilience4j.reactor.circuitbreaker.operator.CircuitBreakerOperator;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -17,20 +18,21 @@ public class WebClientProductDetailAdapter implements ProductDetailPort {
 
     private final WebClient webClient;
     private final Duration timeout;
-    private final CircuitBreaker circuitBreaker;
+    private final CircuitBreakerRegistry circuitBreakerRegistry;
 
     public WebClientProductDetailAdapter(
             WebClient.Builder webClientBuilder,
             UpstreamProperties properties,
-            CircuitBreaker productApiCircuitBreaker
+            CircuitBreakerRegistry circuitBreakerRegistry
     ) {
         this.webClient = webClientBuilder.baseUrl(properties.getBaseUrl()).build();
         this.timeout = Duration.ofMillis(properties.getTimeoutMs());
-        this.circuitBreaker = productApiCircuitBreaker;
+        this.circuitBreakerRegistry = circuitBreakerRegistry;
     }
 
     @Override
     public Mono<Product> findById(String productId) {
+        CircuitBreaker circuitBreaker = PerProductCircuitBreakers.of(circuitBreakerRegistry, productId);
         return webClient.get()
                 .uri("/product/{productId}", productId)
                 .retrieve()

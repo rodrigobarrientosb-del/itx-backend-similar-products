@@ -4,6 +4,7 @@ import com.itx.similarproducts.domain.exception.ProductNotFoundException;
 import com.itx.similarproducts.domain.port.out.SimilarIdsPort;
 import com.itx.similarproducts.infrastructure.config.UpstreamProperties;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.github.resilience4j.reactor.circuitbreaker.operator.CircuitBreakerOperator;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatusCode;
@@ -19,20 +20,21 @@ public class WebClientSimilarIdsAdapter implements SimilarIdsPort {
 
     private final WebClient webClient;
     private final Duration timeout;
-    private final CircuitBreaker circuitBreaker;
+    private final CircuitBreakerRegistry circuitBreakerRegistry;
 
     public WebClientSimilarIdsAdapter(
             WebClient.Builder webClientBuilder,
             UpstreamProperties properties,
-            CircuitBreaker productApiCircuitBreaker
+            CircuitBreakerRegistry circuitBreakerRegistry
     ) {
         this.webClient = webClientBuilder.baseUrl(properties.getBaseUrl()).build();
         this.timeout = Duration.ofMillis(properties.getTimeoutMs());
-        this.circuitBreaker = productApiCircuitBreaker;
+        this.circuitBreakerRegistry = circuitBreakerRegistry;
     }
 
     @Override
     public Flux<String> findSimilarIds(String productId) {
+        CircuitBreaker circuitBreaker = PerProductCircuitBreakers.of(circuitBreakerRegistry, productId);
         return webClient.get()
                 .uri("/product/{productId}/similarids", productId)
                 .retrieve()
